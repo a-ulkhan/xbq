@@ -9,15 +9,15 @@ Running multiple Claude Code sessions on the same Xcode project requires separat
 ## How It Works
 
 ```
-┌─────────────┐  ┌─────────────┐  ┌─────────────┐
-│ Claude Code  │  │ Claude Code  │  │ Claude Code  │
-│ (worktree A) │  │ (worktree B) │  │ (worktree C) │
-└──────┬───────┘  └──────┬───────┘  └──────┬───────┘
-       │ snapshot          │ snapshot          │ snapshot
-       └──────────────────┼──────────────────┘
+┌──────────────┐   ┌──────────────┐    ┌──────────────┐
+│ Claude Code  │   │ Claude Code  │    │ Claude Code  │
+│ (worktree A) │   │ (worktree B) │    │ (worktree C) │
+└──────┬───────┘   └──────┬───────┘    └──────┬───────┘
+       │ snapshot         │ snapshot          │ snapshot
+       └──────────────────┼───────────────────┘
                           ▼
                ┌────────────────────┐
-               │  xbq (serial queue) │
+               │ xbq (serial queue) │
                │                    │
                │ checkout snapshot  │
                │ (detached HEAD)    │
@@ -27,8 +27,8 @@ Running multiple Claude Code sessions on the same Xcode project requires separat
                └────────┬───────────┘
                         ▼
                   ┌───────────┐
-                  │ Main Repo  │  ← single DerivedData
-                  │ (warm)     │  ← SPM already resolved
+                  │ Main Repo │  ← single DerivedData
+                  │ (warm)    │  ← SPM already resolved
                   └───────────┘
 ```
 
