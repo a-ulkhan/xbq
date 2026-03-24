@@ -1,6 +1,6 @@
 import { type Job, type JobResult } from "./types.js";
 import { loadConfig } from "./config.js";
-import { applySnapshot, cleanSnapshot } from "./snapshot.js";
+import { applySnapshot, cleanSnapshot, ensureCleanMainRepo } from "./snapshot.js";
 import { expandPath, log, run } from "./utils.js";
 import { executeWithMCP } from "./backends/mcp.js";
 import { executeWithXcodebuild } from "./backends/xcodebuild.js";
@@ -12,6 +12,9 @@ export async function executeJob(job: Job): Promise<JobResult> {
   const config = loadConfig();
   const repoPath = expandPath(config.main_repo);
   const workspace = config.workspace;
+
+  // 0. Pre-build safety: ensure main repo is clean and on default branch
+  ensureCleanMainRepo(repoPath);
 
   // 1. Stash any uncommitted changes in main repo
   const stashed = stashIfDirty(repoPath);

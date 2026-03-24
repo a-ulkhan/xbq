@@ -93,8 +93,62 @@ export function applySnapshot(repoPath: string, sha: string): void {
 export function cleanSnapshot(repoPath: string): void {
   const defaultBranch = getDefaultBranch(repoPath);
   try {
+    // Discard any index/worktree changes from the snapshot before switching
+    run("git reset --hard", { cwd: repoPath, quiet: true });
     run(`git checkout ${defaultBranch}`, { cwd: repoPath, quiet: true });
   } catch {
-    log.warn(`Could not return to ${defaultBranch}`);
+    log.warn(`Could not return to ${defaultBranch} — attempting force cleanup`);
+    try {
+      run("git checkout --force " + defaultBranch, { cwd: repoPath, quiet: true });
+    } catch {
+      log.error(`Failed to restore ${defaultBranch}. Manual cleanup required: cd ${repoPath} && git checkout ${defaultBranch}`);
+    }
+  }
+}
+
+/**
+ * Pre-build safety check: ensure the main repo is on its default branch
+ * with no uncommitted changes or stale detached HEAD from a previous run.
+ */
+export function ensureCleanMainRepo(repoPath: string): void {
+  const defaultBranch = getDefaultBranch(repoPath);
+
+  // Check if HEAD is detached
+  let isDetached = false;
+  try {
+    run("git symbolic-ref HEAD", { cwd: repoPath, quiet: true });
+  } catch {
+    isDetached = true;
+  }
+
+  if (isDetached) {
+    log.warn("Main repo is in detached HEAD (stale snapshot?) — recovering...");
+    try {
+      run("git reset --hard", { cwd: repoPath, quiet: true });
+      run(`git checkout ${defaultBranch}`, { cwd: repoPath, quiet: true });
+      log.ok(`Recovered to ${defaultBranch}`);
+    } catch {
+      throw new Error(
+        `Main repo stuck in detached HEAD and recovery failed. ` +
+        `Manual fix: cd ${repoPath} && git checkout ${defaultBranch}`
+      );
+    }
+    return;
+  }
+
+  // Check if on the expected branch
+  const currentBranch = run("git branch --show-current", { cwd: repoPath, quiet: true });
+  if (currentBranch !== defaultBranch) {
+    log.warn(`Main repo on '${currentBranch}' instead of '${defaultBranch}' — switching...`);
+    try {
+      run("git reset --hard", { cwd: repoPath, quiet: true });
+      run(`git checkout ${defaultBranch}`, { cwd: repoPath, quiet: true });
+      log.ok(`Switched to ${defaultBranch}`);
+    } catch {
+      throw new Error(
+        `Could not switch main repo to ${defaultBranch}. ` +
+        `Manual fix: cd ${repoPath} && git checkout ${defaultBranch}`
+      );
+    }
   }
 }
