@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { Command } from "commander";
-import { initConfig } from "./config.js";
+import { initConfig, configList, configGet, configSet } from "./config.js";
 import { startDaemon, stopDaemon, daemonStatus } from "./daemon.js";
 import { enqueueAndWait } from "./enqueue.js";
 import { createWorktree, listWorktrees, cleanWorktrees } from "./worktree.js";
@@ -15,7 +15,7 @@ const program = new Command();
 program
   .name("xbq")
   .description("Serial build queue for Xcode projects with git worktrees")
-  .version("0.1.0");
+  .version("0.2.0");
 
 // --- init ---
 program
@@ -204,6 +204,32 @@ program
     } else {
       setupClaude(dir);
     }
+  });
+
+// --- config ---
+const config = program
+  .command("config")
+  .description("View and update configuration");
+
+config
+  .command("list")
+  .description("Show all config values")
+  .action(() => {
+    configList();
+  });
+
+config
+  .command("get <key>")
+  .description("Get a config value")
+  .action((key: string) => {
+    configGet(key);
+  });
+
+config
+  .command("set <key> <value>")
+  .description("Set a config value")
+  .action((key: string, value: string) => {
+    configSet(key, value);
   });
 
 // --- clean ---

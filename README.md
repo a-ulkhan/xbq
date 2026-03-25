@@ -213,22 +213,35 @@ If MCP fails, `xbq` automatically falls back to xcodebuild (configurable).
 
 ## Configuration
 
-Stored at `~/.bq/config.json`:
+Manage settings via `xbq config`:
 
-```json
-{
-  "main_repo": "~/path/to/your/project",
-  "workspace": "MyApp.xcworkspace",
-  "default_scheme": "MyApp",
-  "default_test_plan": "",
-  "default_destination": "platform=iOS Simulator,name=iPhone 16",
-  "backend": "mcp",
-  "xcodebuild_fallback": true,
-  "git_restore_mtime": true
-}
+```bash
+# List all settings
+xbq config list
+
+# Get a specific value
+xbq config get backend
+
+# Set a value
+xbq config set backend xcodebuild
+xbq config set default_destination "platform=iOS Simulator,name=iPhone 16,OS=18.0"
+xbq config set xcodebuild_fallback false
 ```
 
-Workspace and scheme are auto-detected during `xbq init`.
+### Available keys
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `main_repo` | string | `""` | Path to main Xcode repo |
+| `workspace` | string | `""` | Xcode workspace name |
+| `default_scheme` | string | `""` | Default build scheme |
+| `default_test_plan` | string | `""` | Default test plan |
+| `default_destination` | string | `platform=iOS Simulator,name=iPhone 16` | Simulator destination |
+| `backend` | `mcp` \| `xcodebuild` | `mcp` | Build backend |
+| `xcodebuild_fallback` | boolean | `true` | Fall back to xcodebuild if MCP fails |
+| `git_restore_mtime` | boolean | `true` | Restore file timestamps for incremental builds |
+
+Config is stored at `~/.bq/config.json`. Workspace, scheme, and backend are auto-detected during `xbq init`.
 
 ## All Commands
 
@@ -245,6 +258,9 @@ Workspace and scheme are auto-detected during `xbq init`.
 | `xbq logs [job-id]` | View build logs / recent results |
 | `xbq daemon start\|stop\|status` | Manage the queue daemon |
 | `xbq setup-claude [dir]` | Inject/update xbq instructions in CLAUDE.md |
+| `xbq config list` | Show all config values |
+| `xbq config get <key>` | Get a config value |
+| `xbq config set <key> <value>` | Set a config value |
 | `xbq clean` | Clean old results and logs |
 
 ### Common flags

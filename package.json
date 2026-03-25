@@ -1,6 +1,6 @@
 {
   "name": "xcode-build-queue",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Serial build queue for Xcode projects with git worktrees",
   "license": "MIT",
   "repository": {
