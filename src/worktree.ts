@@ -24,7 +24,7 @@ function getWorktreeBase(): string {
 /**
  * Create a new worktree and optionally start Claude Code in it.
  */
-export function createWorktree(name?: string, opts?: { startClaude?: boolean }): string {
+export function createWorktree(name?: string, opts?: { startClaude?: boolean; prompt?: string }): string {
   const mainRepo = getMainRepo();
   const base = getWorktreeBase();
 
@@ -81,7 +81,7 @@ export function createWorktree(name?: string, opts?: { startClaude?: boolean }):
   setupClaude(worktreePath);
 
   if (opts?.startClaude) {
-    launchClaude(worktreePath);
+    launchClaude(worktreePath, opts?.prompt);
   }
 
   return worktreePath;
@@ -259,10 +259,11 @@ function getAge(path: string): string {
   }
 }
 
-function launchClaude(worktreePath: string): void {
+function launchClaude(worktreePath: string, prompt?: string): void {
   log.info(`Starting Claude Code in ${worktreePath}`);
   try {
-    execSync(`claude`, {
+    const args = prompt ? `claude "${prompt.replace(/"/g, '\\"')}"` : "claude";
+    execSync(args, {
       cwd: worktreePath,
       stdio: "inherit",
     });

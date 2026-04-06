@@ -15,7 +15,7 @@ const program = new Command();
 program
   .name("xbq")
   .description("Serial build queue for Xcode projects with git worktrees")
-  .version("0.2.0");
+  .version("0.3.0");
 
 // --- init ---
 program
@@ -189,8 +189,9 @@ worktree
 program
   .command("session [name]")
   .description("Create a worktree and start Claude Code in it")
-  .action((name?: string) => {
-    createWorktree(name, { startClaude: true });
+  .option("-p, --prompt <prompt>", "Initial prompt to pass to Claude")
+  .action((name: string | undefined, opts: { prompt?: string }) => {
+    createWorktree(name, { startClaude: true, prompt: opts.prompt });
   });
 
 // --- setup-claude ---

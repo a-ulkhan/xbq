@@ -87,6 +87,9 @@ pip3 install git-restore-mtime
 # Create a worktree + launch Claude Code (all-in-one)
 xbq session my-feature
 
+# With an initial prompt (auto-submitted to Claude Code)
+xbq session my-feature -p "implement login screen"
+
 # Or create worktree only (e.g. to open in a new terminal)
 xbq worktree new my-feature
 
@@ -98,6 +101,7 @@ xbq session
 1. Creates a git worktree branching from the default branch
 2. Auto-injects `xbq` instructions into the worktree's `CLAUDE.md`
 3. Optionally launches Claude Code in the worktree
+4. With `-p`, passes the prompt directly to Claude Code so it starts working immediately
 
 ### Build and test from a worktree
 
@@ -248,7 +252,7 @@ Config is stored at `~/.bq/config.json`. Workspace, scheme, and backend are auto
 | Command | Description |
 |---------|-------------|
 | `xbq init [path]` | First-time setup — set main repo path |
-| `xbq session [name]` | Create worktree + start Claude Code |
+| `xbq session [name] [-p prompt]` | Create worktree + start Claude Code |
 | `xbq worktree new [name]` | Create a new worktree |
 | `xbq worktree list` | List all worktrees |
 | `xbq worktree clean` | Remove merged/stale worktrees |
@@ -267,6 +271,7 @@ Config is stored at `~/.bq/config.json`. Workspace, scheme, and backend are auto
 
 | Flag | Commands | Description |
 |------|----------|-------------|
+| `-p, --prompt <prompt>` | session | Initial prompt to auto-submit to Claude Code |
 | `-b, --branch <branch>` | build, test | Branch to build (optional in worktree) |
 | `-s, --scheme <scheme>` | build, test | Xcode scheme override |
 | `-d, --destination <dest>` | build, test | Simulator destination |
