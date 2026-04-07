@@ -79,6 +79,43 @@ For best incremental build performance after branch switches:
 pip3 install git-restore-mtime
 ```
 
+## Fleet Management
+
+Manage multiple parallel Claude sessions across worktrees with templates and session tracking.
+
+```bash
+# List available templates
+xbq fleet templates
+
+# Launch a code-review session for an MR
+xbq fleet launch --template code-review --mr 4521
+
+# Launch a feature session for a Jira ticket
+xbq fleet launch --template feature --ticket MOBI-12345
+
+# Launch with a custom name and prompt
+xbq fleet launch my-experiment -p "refactor the auth module"
+
+# Check all fleet sessions
+xbq fleet status
+# WORKTREE              STATUS     TASK                    SINCE
+# code-review-mr-4521   active     Review MR !4521         12m
+# feature-mobi-12345    active     feature MOBI-12345      8m
+
+# Stop a session
+xbq fleet stop code-review-mr-4521
+```
+
+### Built-in templates
+
+| Template | Use case | Auto-generates |
+|----------|----------|----------------|
+| `code-review` | MR review | Worktree name, review prompt, read-only permissions |
+| `feature` | New feature | Worktree name, implementation prompt |
+| `bugfix` | Bug fix | Worktree name, investigation prompt |
+
+Custom templates go in `~/.bq/fleet/templates/` as JSON files (same shape as built-ins, overrides by name).
+
 ## Quick Start
 
 ### Start a new parallel session
@@ -256,6 +293,10 @@ Config is stored at `~/.bq/config.json`. Workspace, scheme, and backend are auto
 | `xbq worktree new [name]` | Create a new worktree |
 | `xbq worktree list` | List all worktrees |
 | `xbq worktree clean` | Remove merged/stale worktrees |
+| `xbq fleet status` | Show all fleet sessions and their state |
+| `xbq fleet launch [name]` | Create a tracked worktree session from a template |
+| `xbq fleet stop <name>` | Mark a fleet session as stopped |
+| `xbq fleet templates` | List available fleet templates |
 | `xbq build` | Enqueue a build job |
 | `xbq test` | Enqueue a test job |
 | `xbq status` | Show daemon + queue status |
@@ -271,11 +312,14 @@ Config is stored at `~/.bq/config.json`. Workspace, scheme, and backend are auto
 
 | Flag | Commands | Description |
 |------|----------|-------------|
-| `-p, --prompt <prompt>` | session | Initial prompt to auto-submit to Claude Code |
+| `-p, --prompt <prompt>` | session, fleet launch | Initial prompt for Claude Code |
+| `-t, --template <name>` | fleet launch | Template: code-review, feature, bugfix |
+| `--mr <iid>` | fleet launch | GitLab MR IID (for code-review template) |
+| `--ticket <key>` | fleet launch | Jira ticket key (for feature/bugfix template) |
 | `-b, --branch <branch>` | build, test | Branch to build (optional in worktree) |
 | `-s, --scheme <scheme>` | build, test | Xcode scheme override |
 | `-d, --destination <dest>` | build, test | Simulator destination |
-| `-t, --test-plan <plan>` | test | Test plan name |
+| `--test-plan <plan>` | test | Test plan name |
 | `--backend <backend>` | build, test | Force mcp or xcodebuild |
 | `--timeout <seconds>` | build, test | Job timeout (default: 1800) |
 

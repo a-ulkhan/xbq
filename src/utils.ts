@@ -13,6 +13,9 @@ export const BQ_RESULTS_DIR = join(BQ_HOME, "results");
 export const BQ_LOGS_DIR = join(BQ_HOME, "logs");
 export const BQ_PID_FILE = join(BQ_HOME, "daemon.pid");
 export const BQ_LOCK_FILE = join(BQ_HOME, "daemon.lock");
+export const BQ_FLEET_DIR = join(BQ_HOME, "fleet");
+export const BQ_FLEET_SESSIONS_DIR = join(BQ_FLEET_DIR, "sessions");
+export const BQ_FLEET_TEMPLATES_DIR = join(BQ_FLEET_DIR, "templates");
 
 // Colors
 // Prefix for all log/status output
@@ -37,7 +40,7 @@ export const log = {
 };
 
 export function ensureDirs(): void {
-  for (const dir of [BQ_HOME, BQ_QUEUE_DIR, BQ_ACTIVE_DIR, BQ_RESULTS_DIR, BQ_LOGS_DIR]) {
+  for (const dir of [BQ_HOME, BQ_QUEUE_DIR, BQ_ACTIVE_DIR, BQ_RESULTS_DIR, BQ_LOGS_DIR, BQ_FLEET_DIR, BQ_FLEET_SESSIONS_DIR]) {
     mkdirSync(dir, { recursive: true });
   }
 }

@@ -5,7 +5,7 @@ import { getMainRepo, loadConfig } from "./config.js";
 import { setupClaude } from "./setup-claude.js";
 import { log, run } from "./utils.js";
 
-interface WorktreeInfo {
+export interface WorktreeInfo {
   path: string;
   branch: string;
   head: string;
@@ -14,7 +14,7 @@ interface WorktreeInfo {
 
 const WORKTREE_DIR_NAME = "worktrees";
 
-function getWorktreeBase(): string {
+export function getWorktreeBase(): string {
   const mainRepo = getMainRepo();
   const parent = join(mainRepo, "..");
   const repoName = basename(mainRepo);
@@ -201,7 +201,7 @@ function shouldCleanWorktree(
   return { clean: false, reason: "" };
 }
 
-function getWorktrees(mainRepo: string): WorktreeInfo[] {
+export function getWorktrees(mainRepo: string): WorktreeInfo[] {
   const output = run("git worktree list --porcelain", { cwd: mainRepo, quiet: true });
   const worktrees: WorktreeInfo[] = [];
   let current: Partial<WorktreeInfo> = {};

@@ -5,6 +5,8 @@ import { startDaemon, stopDaemon, daemonStatus } from "./daemon.js";
 import { enqueueAndWait } from "./enqueue.js";
 import { createWorktree, listWorktrees, cleanWorktrees } from "./worktree.js";
 import { setupClaude, removeClaude } from "./setup-claude.js";
+import { fleetStatus, fleetLaunch, fleetStop } from "./fleet/manager.js";
+import { listTemplates } from "./fleet/templates.js";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { basename, join } from "node:path";
 import { BQ_LOGS_DIR, BQ_RESULTS_DIR, log } from "./utils.js";
@@ -15,7 +17,7 @@ const program = new Command();
 program
   .name("xbq")
   .description("Serial build queue for Xcode projects with git worktrees")
-  .version("0.3.0");
+  .version("0.4.0");
 
 // --- init ---
 program
@@ -231,6 +233,52 @@ config
   .description("Set a config value")
   .action((key: string, value: string) => {
     configSet(key, value);
+  });
+
+// --- fleet ---
+const fleet = program
+  .command("fleet")
+  .description("Manage fleet of parallel Claude sessions across worktrees");
+
+fleet
+  .command("status")
+  .description("Show all fleet sessions and their state")
+  .action(() => {
+    fleetStatus();
+  });
+
+fleet
+  .command("launch [name]")
+  .description("Create a worktree and track it as a fleet session")
+  .option("-t, --template <template>", "Template: code-review, feature, bugfix")
+  .option("--mr <iid>", "GitLab MR IID (for code-review template)")
+  .option("--ticket <key>", "Jira ticket key (for feature/bugfix template)")
+  .option("-p, --prompt <prompt>", "Additional prompt for Claude")
+  .action((name: string | undefined, opts: { template?: string; mr?: string; ticket?: string; prompt?: string }) => {
+    fleetLaunch(name, opts);
+  });
+
+fleet
+  .command("stop <name>")
+  .description("Mark a fleet session as stopped")
+  .action((name: string) => {
+    fleetStop(name);
+  });
+
+fleet
+  .command("templates")
+  .description("List available fleet templates")
+  .action(() => {
+    const templates = listTemplates();
+    console.log();
+    for (const t of templates) {
+      console.log(`  ${t.name}`);
+      console.log(`    ${t.prompt_prefix.split("\n")[0]}`);
+      if (t.permissions) {
+        console.log(`    permissions: ${t.permissions.join(", ")}`);
+      }
+      console.log();
+    }
   });
 
 // --- clean ---
