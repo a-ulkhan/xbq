@@ -17,7 +17,7 @@ const program = new Command();
 program
   .name("xbq")
   .description("Serial build queue for Xcode projects with git worktrees")
-  .version("0.4.0");
+  .version("0.5.0");
 
 // --- init ---
 program
@@ -57,6 +57,7 @@ program
   .option("-s, --scheme <scheme>", "Xcode scheme")
   .option("-t, --test-plan <plan>", "Test plan name")
   .option("-d, --destination <dest>", "Simulator destination")
+  .option("-o, --only-testing <identifiers...>", "Run only specific tests (Target/Class or Target/Class/method)")
   .option("--backend <backend>", "Backend: mcp or xcodebuild")
   .option("--timeout <seconds>", "Timeout in seconds", "1800")
   .action(async (opts) => {
@@ -65,6 +66,7 @@ program
       branch: opts.branch,
       scheme: opts.scheme,
       testPlan: opts.testPlan,
+      onlyTesting: opts.onlyTesting,
       destination: opts.destination,
       backend: opts.backend,
       timeout: parseInt(opts.timeout),

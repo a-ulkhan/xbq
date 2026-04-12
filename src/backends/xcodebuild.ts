@@ -28,6 +28,11 @@ export async function executeWithXcodebuild(
     if (job.test_plan) {
       args.push("-testPlan", job.test_plan);
     }
+    if (job.only_testing && job.only_testing.length > 0) {
+      for (const identifier of job.only_testing) {
+        args.push(`-only-testing:${identifier}`);
+      }
+    }
   } else {
     args.push(
       "build",

@@ -18,6 +18,7 @@ export interface EnqueueOptions {
   branch?: string;
   scheme?: string;
   testPlan?: string;
+  onlyTesting?: string[];
   destination?: string;
   backend?: "mcp" | "xcodebuild";
   timeout?: number;
@@ -56,6 +57,7 @@ export async function enqueueAndWait(opts: EnqueueOptions): Promise<JobResult> {
     snapshot_sha: snapshotSha,
     scheme: opts.scheme || config.default_scheme,
     test_plan: opts.action === "test" ? (opts.testPlan || config.default_test_plan || undefined) : undefined,
+    only_testing: opts.action === "test" ? opts.onlyTesting : undefined,
     destination: opts.destination || config.default_destination,
     backend: opts.backend || config.backend,
     submitted_at: new Date().toISOString(),

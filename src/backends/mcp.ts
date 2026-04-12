@@ -173,6 +173,7 @@ export async function executeWithMCP(
         scheme: job.scheme,
         workspace: join(repoPath, workspace),
         ...(job.test_plan ? { testPlan: job.test_plan } : {}),
+        ...(job.only_testing && job.only_testing.length > 0 ? { onlyTesting: job.only_testing } : {}),
         ...(job.destination ? { destination: job.destination } : {}),
       });
     }

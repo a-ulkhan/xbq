@@ -16,6 +16,7 @@ export interface Job {
   snapshot_sha?: string;
   scheme: string;
   test_plan?: string;
+  only_testing?: string[];
   destination?: string;
   backend: "mcp" | "xcodebuild";
   submitted_at: string;

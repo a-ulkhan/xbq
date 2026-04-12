@@ -155,6 +155,15 @@ xbq build --destination "platform=iOS Simulator,name=iPhone 16,OS=26.2"
 # Specific scheme/test plan
 xbq test --scheme MyScheme --test-plan All
 
+# Run only specific test classes
+xbq test --only-testing PayseraUnitTests/BankDetailsPresenterTests
+
+# Run specific test methods
+xbq test --only-testing PayseraUnitTests/BankDetailsPresenterTests/testValidInput
+
+# Multiple targeted tests
+xbq test --only-testing PayseraUnitTests/BankDetailsPresenterTests PayseraTransferSDKTests/IBANGeneratorTests
+
 # Force xcodebuild backend
 xbq build --backend xcodebuild
 
@@ -320,6 +329,7 @@ Config is stored at `~/.bq/config.json`. Workspace, scheme, and backend are auto
 | `-s, --scheme <scheme>` | build, test | Xcode scheme override |
 | `-d, --destination <dest>` | build, test | Simulator destination |
 | `--test-plan <plan>` | test | Test plan name |
+| `-o, --only-testing <ids...>` | test | Run only specific test identifiers (Target/Class or Target/Class/method) |
 | `--backend <backend>` | build, test | Force mcp or xcodebuild |
 | `--timeout <seconds>` | build, test | Job timeout (default: 1800) |
 
