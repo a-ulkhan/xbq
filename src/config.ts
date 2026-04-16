@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { BQ_CONFIG_PATH, ensureDirs, expandPath, log, run } from "./utils.js";
 import { type BQConfig, DEFAULT_CONFIG } from "./types.js";
+import { seedDefaults as seedTemplateDefaults } from "./fleet/templates.js";
 
 /** All valid config keys */
 const CONFIG_KEYS = Object.keys(DEFAULT_CONFIG) as (keyof BQConfig)[];
@@ -170,6 +171,7 @@ export async function initConfig(repoPath?: string): Promise<void> {
   config.git_restore_mtime = true;
 
   saveConfig(config);
+  seedTemplateDefaults();
 
   log.ok(`Configuration saved to ${BQ_CONFIG_PATH}`);
   console.log();

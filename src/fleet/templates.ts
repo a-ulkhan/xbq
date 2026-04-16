@@ -1,9 +1,9 @@
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { BQ_FLEET_TEMPLATES_DIR } from "../utils.js";
+import { BQ_FLEET_TEMPLATES_DIR, log } from "../utils.js";
 import type { FleetTemplate } from "./types.js";
 
-const BUILT_IN: FleetTemplate[] = [
+const DEFAULT_TEMPLATES: FleetTemplate[] = [
   {
     name: "code-review",
     prompt_prefix:
@@ -36,50 +36,104 @@ const BUILT_IN: FleetTemplate[] = [
   },
 ];
 
-/**
- * Load a template by name. Checks user-defined templates first, then built-ins.
- */
-export function loadTemplate(name: string): FleetTemplate | undefined {
-  // Check user-defined templates directory first
-  if (existsSync(BQ_FLEET_TEMPLATES_DIR)) {
-    const userFile = join(BQ_FLEET_TEMPLATES_DIR, `${name}.json`);
-    if (existsSync(userFile)) {
-      try {
-        return JSON.parse(readFileSync(userFile, "utf-8")) as FleetTemplate;
-      } catch {
-        // Fall through to built-in
-      }
-    }
+function ensureTemplatesDir(): void {
+  if (!existsSync(BQ_FLEET_TEMPLATES_DIR)) {
+    mkdirSync(BQ_FLEET_TEMPLATES_DIR, { recursive: true });
   }
-
-  return BUILT_IN.find((t) => t.name === name);
 }
 
 /**
- * List all available templates (user-defined + built-in, user overrides built-in).
+ * Seed default templates as JSON files if the templates directory is empty.
+ */
+export function seedDefaults(): void {
+  ensureTemplatesDir();
+  const existing = readdirSync(BQ_FLEET_TEMPLATES_DIR).filter((f) => f.endsWith(".json"));
+  if (existing.length > 0) return;
+
+  for (const t of DEFAULT_TEMPLATES) {
+    const filePath = join(BQ_FLEET_TEMPLATES_DIR, `${t.name}.json`);
+    writeFileSync(filePath, JSON.stringify(t, null, 2) + "\n");
+  }
+  log.ok(`Seeded ${DEFAULT_TEMPLATES.length} default templates in ${BQ_FLEET_TEMPLATES_DIR}`);
+}
+
+/**
+ * Load a template by name from the templates directory.
+ */
+export function loadTemplate(name: string): FleetTemplate | undefined {
+  ensureTemplatesDir();
+  const filePath = join(BQ_FLEET_TEMPLATES_DIR, `${name}.json`);
+  if (!existsSync(filePath)) return undefined;
+  try {
+    return JSON.parse(readFileSync(filePath, "utf-8")) as FleetTemplate;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * List all templates from the templates directory.
  */
 export function listTemplates(): FleetTemplate[] {
-  const templates = new Map<string, FleetTemplate>();
+  ensureTemplatesDir();
+  const templates: FleetTemplate[] = [];
 
-  // Built-ins first
-  for (const t of BUILT_IN) {
-    templates.set(t.name, t);
-  }
-
-  // User-defined override built-ins
-  if (existsSync(BQ_FLEET_TEMPLATES_DIR)) {
-    for (const file of readdirSync(BQ_FLEET_TEMPLATES_DIR)) {
-      if (!file.endsWith(".json")) continue;
-      try {
-        const t = JSON.parse(
-          readFileSync(join(BQ_FLEET_TEMPLATES_DIR, file), "utf-8")
-        ) as FleetTemplate;
-        templates.set(t.name, t);
-      } catch {
-        // Skip malformed templates
-      }
+  for (const file of readdirSync(BQ_FLEET_TEMPLATES_DIR)) {
+    if (!file.endsWith(".json")) continue;
+    try {
+      const t = JSON.parse(
+        readFileSync(join(BQ_FLEET_TEMPLATES_DIR, file), "utf-8")
+      ) as FleetTemplate;
+      templates.push(t);
+    } catch {
+      // Skip malformed templates
     }
   }
 
-  return [...templates.values()];
+  return templates.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/**
+ * Create a new template JSON file. Returns the file path.
+ */
+export function createTemplate(
+  name: string,
+  promptPrefix: string,
+  permissions?: string[]
+): string {
+  ensureTemplatesDir();
+  const filePath = join(BQ_FLEET_TEMPLATES_DIR, `${name}.json`);
+
+  if (existsSync(filePath)) {
+    log.error(`Template '${name}' already exists. Use 'edit' to modify it.`);
+    process.exit(1);
+  }
+
+  const template: FleetTemplate = { name, prompt_prefix: promptPrefix };
+  if (permissions && permissions.length > 0) {
+    template.permissions = permissions;
+  }
+
+  writeFileSync(filePath, JSON.stringify(template, null, 2) + "\n");
+  return filePath;
+}
+
+/**
+ * Delete a template JSON file.
+ */
+export function deleteTemplate(name: string): void {
+  const filePath = join(BQ_FLEET_TEMPLATES_DIR, `${name}.json`);
+  if (!existsSync(filePath)) {
+    log.error(`Template '${name}' not found.`);
+    process.exit(1);
+  }
+  require("node:fs").unlinkSync(filePath);
+}
+
+/**
+ * Get the file path for a template (for editing).
+ */
+export function getTemplatePath(name: string): string | undefined {
+  const filePath = join(BQ_FLEET_TEMPLATES_DIR, `${name}.json`);
+  return existsSync(filePath) ? filePath : undefined;
 }

@@ -6,7 +6,7 @@ import { enqueueAndWait } from "./enqueue.js";
 import { createWorktree, listWorktrees, cleanWorktrees } from "./worktree.js";
 import { setupClaude, removeClaude } from "./setup-claude.js";
 import { fleetStatus, fleetLaunch, fleetStop } from "./fleet/manager.js";
-import { listTemplates } from "./fleet/templates.js";
+import { listTemplates, createTemplate, deleteTemplate, getTemplatePath, seedDefaults } from "./fleet/templates.js";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { basename, join } from "node:path";
 import { BQ_LOGS_DIR, BQ_RESULTS_DIR, log } from "./utils.js";
@@ -267,13 +267,21 @@ fleet
     fleetStop(name);
   });
 
-fleet
+const templates = fleet
   .command("templates")
+  .description("Manage fleet templates");
+
+templates
+  .command("list")
   .description("List available fleet templates")
   .action(() => {
-    const templates = listTemplates();
+    const all = listTemplates();
+    if (all.length === 0) {
+      log.info("No templates found. Run 'xbq fleet templates seed' to create defaults.");
+      return;
+    }
     console.log();
-    for (const t of templates) {
+    for (const t of all) {
       console.log(`  ${t.name}`);
       console.log(`    ${t.prompt_prefix.split("\n")[0]}`);
       if (t.permissions) {
@@ -281,6 +289,45 @@ fleet
       }
       console.log();
     }
+  });
+
+templates
+  .command("create <name>")
+  .description("Create a new template")
+  .requiredOption("--prompt <prompt>", "Prompt prefix (use {ticket}, {mr} as placeholders)")
+  .option("--permissions <perms...>", "Permission list")
+  .action((name: string, opts: { prompt: string; permissions?: string[] }) => {
+    const filePath = createTemplate(name, opts.prompt, opts.permissions);
+    log.ok(`Template '${name}' created: ${filePath}`);
+    log.info("Edit the JSON file to customize further.");
+  });
+
+templates
+  .command("edit <name>")
+  .description("Open a template in $EDITOR")
+  .action((name: string) => {
+    const filePath = getTemplatePath(name);
+    if (!filePath) {
+      log.error(`Template '${name}' not found.`);
+      process.exit(1);
+    }
+    const editor = process.env.EDITOR || "vi";
+    require("node:child_process").execSync(`${editor} ${filePath}`, { stdio: "inherit" });
+  });
+
+templates
+  .command("delete <name>")
+  .description("Delete a template")
+  .action((name: string) => {
+    deleteTemplate(name);
+    log.ok(`Template '${name}' deleted.`);
+  });
+
+templates
+  .command("seed")
+  .description("Seed default templates (code-review, feature, bugfix)")
+  .action(() => {
+    seedDefaults();
   });
 
 // --- clean ---
