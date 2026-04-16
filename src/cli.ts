@@ -17,7 +17,7 @@ const program = new Command();
 program
   .name("xbq")
   .description("Serial build queue for Xcode projects with git worktrees")
-  .version("0.5.0");
+  .version("0.6.0");
 
 // --- init ---
 program

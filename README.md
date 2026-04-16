@@ -84,14 +84,11 @@ pip3 install git-restore-mtime
 Manage multiple parallel Claude sessions across worktrees with templates and session tracking.
 
 ```bash
-# List available templates
-xbq fleet templates
-
 # Launch a code-review session for an MR
-xbq fleet launch --template code-review --mr 4521
+xbq fleet launch -t code-review --mr 4521
 
 # Launch a feature session for a Jira ticket
-xbq fleet launch --template feature --ticket MOBI-12345
+xbq fleet launch -t feature --ticket MOBI-12345
 
 # Launch with a custom name and prompt
 xbq fleet launch my-experiment -p "refactor the auth module"
@@ -106,15 +103,46 @@ xbq fleet status
 xbq fleet stop code-review-mr-4521
 ```
 
-### Built-in templates
+### Templates
 
-| Template | Use case | Auto-generates |
-|----------|----------|----------------|
-| `code-review` | MR review | Worktree name, review prompt, read-only permissions |
-| `feature` | New feature | Worktree name, implementation prompt |
-| `bugfix` | Bug fix | Worktree name, investigation prompt |
+Templates are user-managed JSON files in `~/.bq/fleet/templates/`. Three defaults are seeded on `xbq init`:
 
-Custom templates go in `~/.bq/fleet/templates/` as JSON files (same shape as built-ins, overrides by name).
+| Template | Use case | Placeholders |
+|----------|----------|--------------|
+| `code-review` | MR review | `{mr}` |
+| `feature` | New feature | `{ticket}` |
+| `bugfix` | Bug fix | `{ticket}` |
+
+Manage templates via CLI:
+
+```bash
+# List all templates
+xbq fleet templates list
+
+# Create a custom template
+xbq fleet templates create refactor --prompt "Refactor {ticket}: ..."
+
+# Edit an existing template in $EDITOR
+xbq fleet templates edit bugfix
+
+# Delete a template
+xbq fleet templates delete refactor
+
+# Re-seed defaults (only if templates directory is empty)
+xbq fleet templates seed
+```
+
+Template JSON format (`~/.bq/fleet/templates/bugfix.json`):
+
+```json
+{
+  "name": "bugfix",
+  "prompt_prefix": "Fix Jira ticket {ticket}:\n1) Fetch ticket\n2) Trace root cause\n3) Fix\n4) Build + test\n5) Commit",
+  "permissions": ["Read", "Grep", "Glob"]
+}
+```
+
+Use `{ticket}` and `{mr}` as placeholders — they are substituted from `--ticket` and `--mr` flags. The `permissions` field is optional.
 
 ## Quick Start
 
@@ -285,6 +313,7 @@ xbq config set xcodebuild_fallback false
 | `main_repo` | string | `""` | Path to main Xcode repo |
 | `workspace` | string | `""` | Xcode workspace name |
 | `default_scheme` | string | `""` | Default build scheme |
+| `default_test_scheme` | string | `""` | Scheme for test jobs (falls back to `default_scheme` if empty) |
 | `default_test_plan` | string | `""` | Default test plan |
 | `default_destination` | string | `platform=iOS Simulator,name=iPhone 16` | Simulator destination |
 | `backend` | `mcp` \| `xcodebuild` | `mcp` | Build backend |
@@ -305,7 +334,11 @@ Config is stored at `~/.bq/config.json`. Workspace, scheme, and backend are auto
 | `xbq fleet status` | Show all fleet sessions and their state |
 | `xbq fleet launch [name]` | Create a tracked worktree session from a template |
 | `xbq fleet stop <name>` | Mark a fleet session as stopped |
-| `xbq fleet templates` | List available fleet templates |
+| `xbq fleet templates list` | List available fleet templates |
+| `xbq fleet templates create <name>` | Create a new template |
+| `xbq fleet templates edit <name>` | Open a template in `$EDITOR` |
+| `xbq fleet templates delete <name>` | Delete a template |
+| `xbq fleet templates seed` | Seed default templates |
 | `xbq build` | Enqueue a build job |
 | `xbq test` | Enqueue a test job |
 | `xbq status` | Show daemon + queue status |
