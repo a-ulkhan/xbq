@@ -2,6 +2,7 @@ export interface BQConfig {
   main_repo: string;
   workspace: string;
   default_scheme: string;
+  default_test_scheme: string;
   default_test_plan: string;
   default_destination: string;
   backend: "mcp" | "xcodebuild";
@@ -38,6 +39,7 @@ export const DEFAULT_CONFIG: BQConfig = {
   main_repo: "",
   workspace: "",
   default_scheme: "",
+  default_test_scheme: "",
   default_test_plan: "",
   default_destination: "platform=iOS Simulator,name=iPhone 16",
   backend: "mcp",

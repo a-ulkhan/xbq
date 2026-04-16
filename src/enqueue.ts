@@ -55,7 +55,7 @@ export async function enqueueAndWait(opts: EnqueueOptions): Promise<JobResult> {
     action: opts.action,
     branch,
     snapshot_sha: snapshotSha,
-    scheme: opts.scheme || config.default_scheme,
+    scheme: opts.scheme || (opts.action === "test" && config.default_test_scheme ? config.default_test_scheme : config.default_scheme),
     test_plan: opts.action === "test" ? (opts.testPlan || config.default_test_plan || undefined) : undefined,
     only_testing: opts.action === "test" ? opts.onlyTesting : undefined,
     destination: opts.destination || config.default_destination,
